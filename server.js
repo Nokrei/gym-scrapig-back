@@ -14,8 +14,22 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const puppeteer = require("puppeteer");
 
-// Import mongoose (for connecting MongoDB)
+// Import mongoose 
 const mongoose = require("mongoose");
+const ProductModels = require("./routes/ProductRoutes");
+
+const dbURL = process.env.DB_URL;
+
+mongoose
+  .connect(dbURL, { useNewUrlParser: true, useUnifiedTopology: true })
+
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+
+  .catch((e) => {
+    console.log("an error occured", e);
+  });
 
 // Use Axios to get HTTP request
 axios
@@ -30,10 +44,12 @@ axios
     const scrapeData = $("h3", ".col-xs-12 div").text().split(" ");
 
     // Extract lowest number from data received
-    const scrapedData = scrapeData.map((item) => {
-      return parseInt(item);
-    }).filter(item=> item > 1).sort((a,b) => a-b)
-    
+    const scrapedData = scrapeData
+      .map((item) => {
+        return parseInt(item);
+      })
+      .filter((item) => item > 1)
+      .sort((a, b) => a - b);
 
     // Output scraped data
     console.log(scrapedData[0]);
