@@ -9,14 +9,19 @@ server.set("view engine", "ejs");
 const dotenv = require("dotenv");
 dotenv.config();
 
+// Import body-parser
+const bodyParser = require('body-parser');
+
 // Import axios, cheerio and puppeteer
 const axios = require("axios");
 const cheerio = require("cheerio");
-const puppeteer = require("puppeteer");
 
-// Import mongoose 
+// Import express-form-data
+const expressFormData = require("express-form-data");
+
+// Import mongoose
 const mongoose = require("mongoose");
-const ProductModels = require("./routes/ProductRoutes");
+const ProductRoutes = require("./routes/ProductRoutes");
 
 const dbURL = process.env.DB_URL;
 
@@ -30,6 +35,10 @@ mongoose
   .catch((e) => {
     console.log("an error occured", e);
   });
+
+server.use(bodyParser.urlencoded({ extended: false }));
+server.use(bodyParser.json());
+server.use(expressFormData.parse());
 
 // Use Axios to get HTTP request
 axios
@@ -67,6 +76,8 @@ server.get(
     res.send(theHTML);
   }
 );
+
+server.use("/products", ProductRoutes);
 
 server.get("/404", (req, res) => {
   res.send("<h1>404<h1>");
