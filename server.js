@@ -5,12 +5,18 @@ const server = express();
 
 server.set("view engine", "ejs");
 
+// Import cors
+const cors = require('cors');
+
 // Import dotenv
 const dotenv = require("dotenv");
 dotenv.config();
 
+// Import Product model
+const ProductModel = require("./models/ProductModel");
+
 // Import body-parser
-const bodyParser = require('body-parser');
+const bodyParser = require("body-parser");
 
 // Import axios, cheerio and puppeteer
 const axios = require("axios");
@@ -38,11 +44,26 @@ mongoose
 
 server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json());
+server.use(cors());
 server.use(expressFormData.parse());
+
+// Delete all entries in products collection
+
+ProductModel.deleteMany({ price: { $gte: 1 } })
+  .then(() => {
+    console.log("Data deleted");
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+
+// Gym names array
+const gyms = ["https://fitness101.com/membership","https://whgym.com/package/regular/",
+"https://iconicfitness.ae/about/rates/","https://goldsgym.ae/2021-offer/" ]
 
 // Use Axios to get HTTP request
 axios
-  .get("https://fitness101.com/membership")
+  .get(gyms[0])
   .then((response) => {
     const html = response.data;
 
@@ -60,13 +81,113 @@ axios
       .filter((item) => item > 1)
       .sort((a, b) => a - b);
 
-    // Output scraped data
-    console.log(scrapedData[0]);
+    // Save new data to DB
+    const formData = {
+      name: gyms[0],
+      price: scrapedData[0],
+    };
+    const newProduct = new ProductModel(formData);
+
+    newProduct.save();
   })
   .catch((error) => {
     console.log(error);
   });
+// Use Axios to get HTTP request
+axios
+  .get(gyms[1])
+  .then((response) => {
+    const html = response.data;
 
+    // Load response data to a Cheerio instance
+    const $ = cheerio.load(html);
+
+    // Use Cheerio selectors syntax to search for the elements containing desired data
+    const scrapeData = $("h2", ".stripe-wrap div ").text().split(" ");
+
+    // Extract lowest number from data received
+    const scrapedData = scrapeData
+      .map((item) => {
+        return parseInt(item);
+      })
+      .filter((item) => item > 12)
+      .sort((a, b) => a - b);
+
+    // Save new data to DB
+    const formData = {
+      name: gyms[1],
+      price: scrapedData[0],
+    };
+    const newProduct = new ProductModel(formData);
+
+    newProduct.save();
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+// Use Axios to get HTTP request
+axios
+  .get(gyms[2])
+  .then((response) => {
+    const html = response.data;
+
+    // Load response data to a Cheerio instance
+    const $ = cheerio.load(html);
+
+    // Use Cheerio selectors syntax to search for the elements containing desired data
+    const scrapeData = $("h2", ".vc_row div").text().split(" ");
+
+    // Extract lowest number from data received
+    const scrapedData = scrapeData
+      .map((item) => {
+        return parseInt(item);
+      })
+      .filter((item) => item > 1)
+      .sort((a, b) => a - b);
+
+    // Save new data to DB
+    const formData = {
+      name: gyms[2],
+      price: scrapedData[0],
+    };
+    const newProduct = new ProductModel(formData);
+
+    newProduct.save();
+  })
+  .catch((error) => {
+    console.log(error);
+  });
+  axios
+  .get(gyms[3])
+  .then((response) => {
+    const html = response.data;
+
+    // Load response data to a Cheerio instance
+    const $ = cheerio.load(html);
+
+    // Use Cheerio selectors syntax to search for the elements containing desired data
+    const scrapeData = $("p", ".so-panel div ").text().split(" ");
+
+    // Extract lowest number from data received
+    const scrapedData = scrapeData
+      .map((item) => {
+        return parseInt(item);
+      })
+      .filter((item) => item > 100 && item < 1000)
+      .sort((a, b) => a - b);
+
+    // Save new data to DB
+    const formData = {
+      name: gyms[3],
+      price: scrapedData[0],
+    };
+    const newProduct = new ProductModel(formData);
+
+    newProduct.save();
+  })
+  .catch((error) => {
+    console.log(error);
+  });
 server.get(
   //1st argument
   "/",
