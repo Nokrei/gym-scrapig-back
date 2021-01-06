@@ -47,7 +47,7 @@ server.use(bodyParser.json());
 server.use(cors());
 server.use(expressFormData.parse());
 
-// Delete all entries in products collection
+// Delete all entries in products collection - only the current price entries are needed
 
 ProductModel.deleteMany({ price: { $gte: 1 } })
   .then(() => {
@@ -122,10 +122,21 @@ const getGymData = (gym, params) => {
     });
 };
 
-//Invoke the getGymData function for each site
+// Invoke the getGymData function for each site
 gyms.map((gym) => {
   return getGymData(gym.link, gym.tagOne, gym.tagTwo);
 });
+
+// Test page
+server.get(
+  //1st argument
+  "/",
+  //2nd argument
+  (req, res) => {
+    const theHTML = "<h1>Welcome to My App</h1>";
+    res.send(theHTML);
+  }
+);
 
 server.use("/products", ProductRoutes);
 
@@ -139,9 +150,9 @@ server.get("*", (req, res) => {
 
 server.listen(
   // port number
-  process.env.PORT || 3000,
+  process.env.PORT || 3001,
   // callback when (and if) the connection is OK
   () => {
-    console.log("Your server is now running http://localhost:3000/");
+    console.log("Your server is now running http://localhost:3001/");
   }
 );
