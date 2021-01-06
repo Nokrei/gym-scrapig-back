@@ -6,7 +6,7 @@ const server = express();
 server.set("view engine", "ejs");
 
 // Import cors
-const cors = require('cors');
+const cors = require("cors");
 
 // Import dotenv
 const dotenv = require("dotenv");
@@ -57,146 +57,75 @@ ProductModel.deleteMany({ price: { $gte: 1 } })
     console.log(error);
   });
 
-// Gym names array
-const gyms = ["https://fitness101.com/membership","https://whgym.com/package/regular/",
-"https://iconicfitness.ae/about/rates/","https://goldsgym.ae/2021-offer/" ]
+// Gym names and tags array
+const gyms = [
+  {
+    link: "https://fitness101.com/membership",
+    tagOne: "h3",
+    tagTwo: ".col-xs-12 div",
+  },
+  {
+    link: "https://whgym.com/package/regular/",
+    tagOne: "h2",
+    tagTwo: ".stripe-wrap div ",
+  },
+  {
+    link: "https://iconicfitness.ae/about/rates/",
+    tagOne: "h2",
+    tagTwo: ".vc_row div",
+  },
+  {
+    link: "https://goldsgym.ae/2021-offer/",
+    tagOne: "p",
+    tagTwo: ".so-panel div ",
+  },
+  {
+    link: "https://fitnessfoundersdxb.com/index.php/about/",
+    tagOne: "h2",
+    tagTwo: ".elementor-element-87d4e4a div ",
+  },
+];
 
-// Use Axios to get HTTP request
-axios
-  .get(gyms[0])
-  .then((response) => {
-    const html = response.data;
-
-    // Load response data to a Cheerio instance
-    const $ = cheerio.load(html);
-
-    // Use Cheerio selectors syntax to search for the elements containing desired data
-    const scrapeData = $("h3", ".col-xs-12 div").text().split(" ");
-
-    // Extract lowest number from data received
-    const scrapedData = scrapeData
-      .map((item) => {
-        return parseInt(item);
-      })
-      .filter((item) => item > 1)
-      .sort((a, b) => a - b);
-
-    // Save new data to DB
-    const formData = {
-      name: gyms[0],
-      price: scrapedData[0],
-    };
-    const newProduct = new ProductModel(formData);
-
-    newProduct.save();
-  })
-  .catch((error) => {
-    console.log(error);
-  });
-// Use Axios to get HTTP request
-axios
-  .get(gyms[1])
-  .then((response) => {
-    const html = response.data;
-
-    // Load response data to a Cheerio instance
-    const $ = cheerio.load(html);
-
-    // Use Cheerio selectors syntax to search for the elements containing desired data
-    const scrapeData = $("h2", ".stripe-wrap div ").text().split(" ");
-
-    // Extract lowest number from data received
-    const scrapedData = scrapeData
-      .map((item) => {
-        return parseInt(item);
-      })
-      .filter((item) => item > 12)
-      .sort((a, b) => a - b);
-
-    // Save new data to DB
-    const formData = {
-      name: gyms[1],
-      price: scrapedData[0],
-    };
-    const newProduct = new ProductModel(formData);
-
-    newProduct.save();
-  })
-  .catch((error) => {
-    console.log(error);
-  });
-// Use Axios to get HTTP request
-axios
-  .get(gyms[2])
-  .then((response) => {
-    const html = response.data;
-
-    // Load response data to a Cheerio instance
-    const $ = cheerio.load(html);
-
-    // Use Cheerio selectors syntax to search for the elements containing desired data
-    const scrapeData = $("h2", ".vc_row div").text().split(" ");
-
-    // Extract lowest number from data received
-    const scrapedData = scrapeData
-      .map((item) => {
-        return parseInt(item);
-      })
-      .filter((item) => item > 1)
-      .sort((a, b) => a - b);
-
-    // Save new data to DB
-    const formData = {
-      name: gyms[2],
-      price: scrapedData[0],
-    };
-    const newProduct = new ProductModel(formData);
-
-    newProduct.save();
-  })
-  .catch((error) => {
-    console.log(error);
-  });
+// Create a function accepting two parameters - gym site adress (gym) and tags for price (params)
+const getGymData = (gym, params) => {
+  // Use Axios to get HTTP request
   axios
-  .get(gyms[3])
-  .then((response) => {
-    const html = response.data;
+    .get(gym)
+    .then((response) => {
+      const html = response.data;
 
-    // Load response data to a Cheerio instance
-    const $ = cheerio.load(html);
+      // Load response data to a Cheerio instance
+      const $ = cheerio.load(html);
 
-    // Use Cheerio selectors syntax to search for the elements containing desired data
-    const scrapeData = $("p", ".so-panel div ").text().split(" ");
+      // Use Cheerio selectors syntax to search for the elements containing desired data
+      const scrapeData = $(params).text().split(" ");
 
-    // Extract lowest number from data received
-    const scrapedData = scrapeData
-      .map((item) => {
-        return parseInt(item);
-      })
-      .filter((item) => item > 100 && item < 1000)
-      .sort((a, b) => a - b);
+      // Extract lowest number from data received
+      const scrapedData = scrapeData
+        .map((item) => {
+          return parseInt(item);
+        })
+        .filter((item) => item > 101)
+        .sort((a, b) => a - b);
 
-    // Save new data to DB
-    const formData = {
-      name: gyms[3],
-      price: scrapedData[0],
-    };
-    const newProduct = new ProductModel(formData);
+      // Save new data to DB
+      const formData = {
+        name: gym,
+        price: scrapedData[0],
+      };
+      const newProduct = new ProductModel(formData);
 
-    newProduct.save();
-  })
-  .catch((error) => {
-    console.log(error);
-  });
-server.get(
-  //1st argument
-  "/",
-  //2nd argument
-  (req, res) => {
-    const theHTML = "<h1>Welcome to My App</h1>";
-    res.send(theHTML);
-  }
-);
+      newProduct.save();
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+
+//Invoke the getGymData function for each site
+gyms.map((gym) => {
+  return getGymData(gym.link, gym.tagOne, gym.tagTwo);
+});
 
 server.use("/products", ProductRoutes);
 
